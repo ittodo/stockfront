@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>사이트 트리</title>
+  <link rel="icon" href="data:," />
+  <link rel="stylesheet" href="./styles.css" />
+  <style>
+    .wrap{max-width:880px;margin:24px auto;padding:16px;border:1px solid #e5e7eb;border-radius:8px;background:#fff}
+    h1{margin:0 0 8px 0}
+    p.desc{margin:0 0 16px 0;color:#6b7280}
+    ul{margin:0;padding-left:18px}
+    li{margin:6px 0}
+    .group{margin:16px 0}
+    code{background:#f3f4f6;padding:1px 4px;border-radius:4px}
+  </style>
+  </head>
+<body>
+  <main class="wrap">
+    <h1>사이트 트리</h1>
+    <p class="desc">프로젝트 내 주요 페이지로 빠르게 이동하세요.</p>
+
+    <section class="group">
+      <h2 style="margin:0 0 6px 0">메인</h2>
+      <ul>
+        <li><a href="./index.html">PDF → CSV 변환기 (메인)</a></li>
+        <li><a href="./help.html">설명 페이지</a></li>
+        <li><a href="./README.md" target="_blank" rel="noopener">README (repo)</a></li>
+      </ul>
+    </section>
+
+    <section class="group">
+      <h2 style="margin:0 0 6px 0">도구/패널</h2>
+      <ul>
+        <li><a href="./corp.html">기업 개요 (대시보드)</a></li>
+        <li><a href="./dividend.html">배당 추출 · 배당 API</a></li>
+        <li><a href="./dividend_kospi.html">KOSPI 배당 스캔(전체)</a></li>
+        <li><a href="./dart.html">공시 검색 패널</a></li>
+        <li><a href="./prices.html">가격 조회 패널</a></li>
+      </ul>
+    </section>
+
+    <section class="group">
+      <h2 style="margin:0 0 6px 0">관리자</h2>
+      <ul>
+        <li><a href="./admin.html">어드민: 마스터 리프레시</a></li>
+        <li><a href="./admin_tickers.html">어드민: 티커 관리</a></li>
+      </ul>
+    </section>
+
+    <section class="group">
+      <h2 style="margin:0 0 6px 0">백엔드(API) 도움말</h2>
+      <ul>
+        <li>헬스체크: <code>/healthz</code> (서버)</li>
+        <li>예시 API: <code>/api/filings/search</code>, <code>/api/prices/close</code></li>
+      </ul>
+    </section>
+  </main>
+</body>
+</html>

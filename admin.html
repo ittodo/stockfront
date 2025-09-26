@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Admin | 마스터 리프레시</title>
+  <link rel="icon" href="data:," />
+  <link rel="stylesheet" href="./styles.css" />
+  <style>
+    .admin-wrap{max-width:800px;margin:24px auto;padding:16px;border:1px solid #e5e7eb;border-radius:8px;background:#fff}
+    .row{display:flex;gap:8px;align-items:center;margin:8px 0}
+    .row label{min-width:120px;color:#6b7280}
+    .row input{flex:1;padding:8px;border:1px solid #d1d5db;border-radius:6px}
+    .actions{display:flex;gap:8px;margin-top:12px}
+    .log{margin-top:16px;white-space:pre-wrap;background:#f9fafb;border:1px solid #e5e7eb;padding:12px;border-radius:6px;font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace}
+  </style>
+  <script defer src="./admin.js"></script>
+  <script type="module" src="./shared-footer.js"></script>
+  </head>
+<body>
+  <main class="admin-wrap">
+    <h1 style="margin:0 0 8px 0">어드민 도구</h1>
+    <p style="margin:0 0 16px 0;color:#6b7280">필요할 때만 수동으로 마스터 인덱스를 리프레시하세요.</p>
+
+    <div class="row">
+      <label for="api-base">API Base URL</label>
+      <input id="api-base" type="text" placeholder="https://api.nodostream.com" />
+    </div>
+    <div class="row">
+      <label for="api-key">x-api-key</label>
+      <input id="api-key" type="password" placeholder="관리자 API 키" />
+    </div>
+
+    <div class="actions">
+      <button id="btn-refresh" class="primary">미국 마스터 리프레시</button>
+    </div>
+
+    <div id="log" class="log" aria-live="polite">대기 중…</div>
+  </main>
+  <footer></footer>
+</body>
+</html>

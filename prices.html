@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>가격 조회 패널</title>
+  <link rel="icon" href="data:," />
+  <link rel="stylesheet" href="./styles.css" />
+  <style>
+    :root{
+      --bg:#f8fafc; --card:#ffffff; --fg:#111827; --muted:#6b7280; --border:#e5e7eb;
+    }
+    @media (prefers-color-scheme: dark){
+      :root{ --bg:#0b1220; --card:#0f172a; --fg:#e5e7eb; --muted:#94a3b8; --border:#233143; }
+    }
+    :root[data-theme="dark"]{ --bg:#0b1220; --card:#0f172a; --fg:#e5e7eb; --muted:#94a3b8; --border:#233143; }
+    body{ background:var(--bg); color:var(--fg); }
+    .wrap{max-width:960px;margin:24px auto;padding:16px;border:1px solid var(--border);border-radius:8px;background:var(--card)}
+    .row{display:flex;gap:8px;align-items:center;margin:8px 0}
+    .row label{min-width:120px;color:var(--muted)}
+    .row input,.row select{flex:1;padding:8px;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--fg)}
+    .row input::placeholder{color:var(--muted)}
+    .actions{display:flex;gap:8px;margin-top:12px}
+    .log{margin-top:16px;white-space:pre-wrap;background:transparent;border:1px solid var(--border);padding:12px;border-radius:6px;font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;color:var(--muted)}
+    table{width:100%;border-collapse:collapse;margin-top:12px}
+    th,td{border:1px solid var(--border);padding:8px 10px;text-align:right}
+    th:first-child,td:first-child{text-align:left}
+    caption{margin-bottom:8px;text-align:left;color:var(--muted)}
+    .toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+    .btn{padding:8px 10px;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--fg);cursor:pointer}
+    .btn.primary{border-color:#2563eb;color:#2563eb}
+  </style>
+  <script defer src="./prices.js"></script>
+  <script type="module" src="./shared-footer.js"></script>
+  </head>
+<body>
+  <main class="wrap">
+    <div class="toolbar">
+      <div>
+        <h1 style="margin:0">가격 조회 패널</h1>
+        <p style="margin:4px 0 0 0;color:var(--muted)">/api/prices/close 결과를 표로 표시</p>
+      </div>
+      <button id="theme-toggle" class="btn" title="테마 전환">테마</button>
+    </div>
+
+    <div class="row">
+      <label for="api-base">API Base URL</label>
+      <input id="api-base" type="text" placeholder="http://localhost:5000" />
+    </div>
+    <div class="row">
+      <label for="ticker">티커</label>
+      <input id="ticker" type="text" placeholder="예: NAS:NFLX 또는 005930" />
+    </div>
+    <div class="row">
+      <label for="market">마켓</label>
+      <select id="market">
+        <option value="USA">USA</option>
+        <option value="KOR">KOR</option>
+      </select>
+    </div>
+    <div class="row">
+      <label for="from">From</label>
+      <input id="from" type="date" />
+    </div>
+    <div class="row">
+      <label for="to">To</label>
+      <input id="to" type="date" />
+    </div>
+    <div class="row">
+      <label for="autofill">옵션</label>
+      <div style="display:flex;gap:12px;align-items:center">
+        <label style="display:flex;align-items:center;gap:6px">
+          <input id="autofill" type="checkbox" /> 자동 백필(없으면 채우고 재시도)
+        </label>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button id="btn-fetch" class="btn primary">조회</button>
+      <button id="btn-demo-nflx" class="btn">예시(NAS:NFLX)</button>
+      <button id="btn-demo-ss" class="btn">예시(005930)</button>
+    </div>
+
+    <div id="meta" class="log">대기 중…</div>
+    <div id="table-wrap"></div>
+    <details style="margin-top:12px">
+      <summary>원본 JSON</summary>
+      <pre id="raw" class="log" style="margin-top:8px"></pre>
+    </details>
+
+    <hr style="margin:16px 0;border:none;border-top:1px solid var(--border)" />
+    <h2 style="margin:0 0 8px 0">관리자 도구(테스트용)</h2>
+    <p style="margin:0 0 8px 0;color:var(--muted)">x-api-key가 필요합니다. 지정 구간 가격만 삭제하거나 전체 초기화를 수행할 수 있습니다.</p>
+    <div class="row">
+      <label for="admin-key">x-api-key</label>
+      <input id="admin-key" type="password" placeholder="관리자 API 키 (예: dev-secret)" />
+    </div>
+    <div class="row">
+      <label>시계열 삭제</label>
+      <div style="flex:1;display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
+        <input id="clr-ticker" type="text" placeholder="티커(NAS:NFLX 또는 005930)" />
+        <select id="clr-market">
+          <option value="">(선택)</option>
+          <option value="USA">USA</option>
+          <option value="KOR">KOR</option>
+        </select>
+        <input id="clr-from" type="date" />
+        <input id="clr-to" type="date" />
+      </div>
+    </div>
+    <div class="actions">
+      <button id="btn-clear" class="btn">지정 시계열 삭제</button>
+    </div>
+
+    <div class="row" style="margin-top:12px">
+      <label>전체 초기화</label>
+      <div style="flex:1;display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px">
+        <input id="reset-confirm" type="text" placeholder="CONFIRM 입력" />
+        <label style="display:flex;align-items:center;gap:6px"><input id="reset-fx" type="checkbox" /> FX 포함</label>
+        <label style="display:flex;align-items:center;gap:6px"><input id="reset-tickers" type="checkbox" /> Tickers 포함</label>
+      </div>
+    </div>
+    <div class="actions">
+      <button id="btn-reset" class="btn">전체 초기화</button>
+    </div>
+  </main>
+  <footer></footer>
+</body>
+</html>
