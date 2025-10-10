@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>KOSPI 배당 스캔</title>
+  <link rel="icon" href="data:;base64,">
+  <link rel="stylesheet" href="./styles.css">
+  <style>
+    .ctrls { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin:8px 0; }
+    .ctrls label { font-size:12px; color:#4b5563; }
+    .ctrls input, .ctrls select { padding:6px 8px; border:1px solid #d1d5db; border-radius:6px; }
+    .btn { padding:6px 10px; border:1px solid #9ca3af; background:#fff; border-radius:6px; cursor:pointer; }
+    .btn.primary { background:#111827; color:#fff; border-color:#111827; }
+    .muted { color:#6b7280; font-size:12px; }
+    table { width:100%; border-collapse:collapse; font-size:13px; }
+    th, td { border-bottom:1px solid #e5e7eb; padding:6px 8px; text-align:left; }
+    th { background:#f9fafb; position:sticky; top:0; }
+    .tag { padding:2px 6px; border-radius:9999px; font-size:12px; border:1px solid #e5e7eb; }
+    .tag.y { background:#dcfce7; color:#166534; border-color:#bbf7d0; }
+    .tag.n { background:#fee2e2; color:#991b1b; border-color:#fecaca; }
+    .progress { height:6px; background:#e5e7eb; border-radius:9999px; overflow:hidden; }
+    .progress > div { height:100%; background:#111827; width:0%; transition: width .2s; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 style="margin:12px 0 4px">KOSPI 배당 스캔</h1>
+    <div class="muted">전체 KOSPI 상장사를 대상으로 최근 공시에서 현금배당 결정을 스캔합니다.</div>
+
+    <div class="ctrls">
+      <label>API Base
+        <input id="api-base" placeholder="http://localhost:5000" style="width:220px">
+      </label>
+      <label>기간
+        <select id="range-days">
+          <option value="365">최근 1년</option>
+          <option value="730" selected>최근 2년</option>
+          <option value="1095">최근 3년</option>
+        </select>
+      </label>
+      <label>동시 처리
+        <input id="concurrency" type="number" min="1" max="20" value="5" style="width:80px">
+      </label>
+      <label>대상 수(테스트용 제한)
+        <input id="limit" type="number" min="0" value="0" style="width:100px" title="0이면 전체">
+      </label>
+      <button id="btn-start" class="btn primary">스캔 시작</button>
+      <button id="btn-export" class="btn">CSV 내보내기</button>
+      <button id="btn-clear-scan-cache" class="btn" style="display:none" title="dev에서만 표시">스캔 캐시 삭제</button>
+      <a class="btn" href="./index.html">홈</a>
+    </div>
+
+    <div id="status" class="muted">대기 중…</div>
+    <div class="progress" style="margin:8px 0 12px"><div id="progbar"></div></div>
+
+    <div id="tbl"></div>
+  </div>
+
+  <script src="./shared-footer.js"></script>
+  <script>
+// Shared dividend parsing utilities (inlined to avoid 404 on external script)
+(() => {
+  const htmlToText = (input) => {
+    const htmlLike = /<[^>]+>/.test(input || '')
+    if (!htmlLike) return String(input || '')
+    return String(input || '')
+      .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+      .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+      .replace(/<br\s*\/?>(?!>)/gi, '\n')
+      .replace(/<\/(p|div|tr|li)>/gi, '\n')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/&nbsp;/gi, ' ')
+      .replace(/&amp;/gi, '&')
+      .replace(/&lt;/gi, '<')
+      .replace(/&gt;/gi, '>')
+  }
+  const cleanNum = (s) => {
+    if (!s) return null
+    const m = (s+'').match(/([\d,]+(?:\.\d+)?)/)
+    if (!m) return null
+    const raw = m[1]
+    const num = parseFloat(raw.replace(/,/g,''))
+    return isFinite(num) ? { raw, num } : null
+  }
+  const toDate = (s) => {
+    if (!s) return null
+    const t = String(s).trim()
+    let y,m,d
+    if (/^\d{8}$/.test(t)) { y=t.slice(0,4); m=t.slice(4,6); d=t.slice(6,8) }
+    else if (/^\d{4}-\d{2}-\d{2}$/.test(t)) { const parts=t.split('-'); y=parts[0]; m=parts[1]; d=parts[2] }
+    else return null
+    const dt = new Date(Number(y), Number(m)-1, Number(d))
+    return isNaN(dt.getTime()) ? null : dt
+  }
+  const parseDecision = (txt) => {
+    const plain = htmlToText(txt)
+    const grab = (labelRe, valRe) => {
+      const src = plain
+      const m = src.match(labelRe)
+      if (!m) return null
+      const block = src.slice(m.index, Math.min(src.length, m.index + 400))
+      const v = block.match(valRe)
+      return v ? (v[1]||'').trim() : null
+    }
+    const kind = grab(/배당구분\s*/i, /배당구분\s*([가-힣A-Za-z]+)/i) || grab(/배당구분\s*\n?/i, /\n?\s*([가-힣A-Za-z]+)/)
+    const type = grab(/배당종류\s*/i, /배당종류\s*([가-힣A-Za-z]+)/i)
+    const tryFindDps = () => {
+      const candidates = []
+      const push = (val) => { const v = cleanNum(val); if (v) candidates.push(v) }
+      let m
+      const re1 = /(1주당|주당)\s*배당금\s*\(\s*원\s*\)\s*(?:[:\-]?\s*)?(?:보통주식|보통)?\s*([0-9][\d,\.]*)/gi
+      while ((m = re1.exec(plain))){ if (!/총액/.test(m[0])) push(m[2]) }
+      const re2 = /보통주식[^\n]{0,40}(1주당|주당)[^\n]{0,10}배당금[^\n]{0,10}\(\s*원\s*\)[^\n]{0,15}([0-9][\d,\.]*)/gi
+      while ((m = re2.exec(plain))){ if (!/총액/.test(m[0])) push(m[2]) }
+      const re3 = /주당\s*배당금\s*\(\s*원\s*\)\s*([0-9][\d,\.]*)/gi
+      while ((m = re3.exec(plain))){ if (!/총액/.test(m[0])) push(m[1]) }
+      return candidates.length ? candidates[0] : null
+    }
+    const dpsCommon = tryFindDps()
+    const ratio = cleanNum(grab(/시가배당율\s*\(%\)/i, /보통주식\s*([\d,\.]+)/i) || grab(/시가배당율\s*\(%\)/i, /\(%\)\s*([\d,\.]+)/i))
+    const total = cleanNum(grab(/배당금\s*총액\s*\(원\)/i, /\(원\)\s*([\d,\.]+)/i) || grab(/배당금총액\s*\(원\)/i, /\(원\)\s*([\d,\.]+)/i))
+    const findYmdFlexible = (s) => {
+      if (!s) return null
+      const m = s.match(/(19|20)\d{2}\D{0,3}(\d{1,2})\D{0,3}(\d{1,2})/)
+      if (!m) return null
+      const y = s.match(/(19|20)\d{2}/)?.[0]
+      const mm = m[2].padStart(2,'0')
+      const dd = m[3].padStart(2,'0')
+      return y ? `${y}-${mm}-${dd}` : null
+    }
+    let recDate = grab(/(배당\s*기준일|기준일자|기준일)/i, /(((19|20)\d{2})[-\.\/_년\s]{0,3}\d{1,2}[-\.\/_월\s]{0,3}\d{1,2})/)
+    if (!recDate) {
+      const src = plain
+      const m = src.match(/(배당\s*기준일|기준일자|기준일)/i)
+      if (m){
+        const block = src.slice(m.index, Math.min(src.length, m.index + 200))
+        recDate = findYmdFlexible(block)
+      }
+    }
+    if (recDate) recDate = recDate.replace(/[\.\/_]/g,'-').replace(/년|월/g,'-').replace(/일/g,'').replace(/\s+/g,'-').replace(/-+/g,'-').replace(/-$/,'')
+    const payDateRaw = grab(/배당금\s*지급[\s\S]{0,10}일자/i, /(((19|20)\d{2})[-\.\/_년\s]{0,3}\d{1,2}[-\.\/_월\s]{0,3}\d{1,2})/)
+    const payDate = findYmdFlexible(payDateRaw || '')
+    const boardDateRaw = grab(/이사회\s*결의일|결정일/i, /(((19|20)\d{2})[-\.\/_년\s]{0,3}\d{1,2}[-\.\/_월\s]{0,3}\d{1,2})/)
+    const boardDate = findYmdFlexible(boardDateRaw || '')
+    let precedence = null
+    const T = plain.replace(/\s+/g,'')
+    if (/선배당/.test(T)) precedence = '선배당'
+    else if (/후배당/.test(T)) precedence = '후배당'
+    else if (kind){
+      if (/결산/.test(kind)) precedence = '후배당'
+      else if (/중간|분기/.test(kind)) precedence = '선배당'
+    }
+    return { kind, type, dps: dpsCommon?.num || null, dps_raw: dpsCommon?.raw || null, ratio: ratio?.num || null, total: total?.num || null, total_raw: total?.raw || null, record_date: recDate || null, pay_date: payDate || null, board_date: boardDate || null, precedence }
+  }
+  window.DividendUtils = { parseDecision, toDate }
+})()
+  </script>
+  <script src="./dividend_kospi.js"></script>
+</body>
+</html>
