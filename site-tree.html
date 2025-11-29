@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="ko">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>사이트 트리</title>
+  <link rel="icon" href="data:," />
+  <link rel="stylesheet" href="./src/styles/styles.css" />
+  <style>
+    .wrap {
+      max-width: 880px;
+      margin: 24px auto;
+      padding: 16px;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      background: #fff
+    }
+
+    h1 {
+      margin: 0 0 8px 0
+    }
+
+    p.desc {
+      margin: 0 0 16px 0;
+      color: #6b7280
+    }
+
+    ul {
+      margin: 0;
+      padding-left: 18px
+    }
+
+    li {
+      margin: 6px 0
+    }
+
+    .group {
+      margin: 16px 0
+    }
+
+    code {
+      background: #f3f4f6;
+      padding: 1px 4px;
+      border-radius: 4px
+    }
+  </style>
+</head>
+
+<body>
+  <main class="wrap">
+    <h1>사이트 트리</h1>
+    <p class="desc">프로젝트 내 주요 페이지로 빠르게 이동하세요.</p>
+
+    <section class="group">
+      <h2 style="margin:0 0 6px 0">메인</h2>
+      <ul>
+        <li><a href="./index.html">PDF → CSV 변환기 (메인)</a></li>
+        <li><a href="./help.html">설명 페이지</a></li>
+        <li><a href="./README.md" target="_blank" rel="noopener">README (repo)</a></li>
+      </ul>
+    </section>
+
+    <section class="group">
+      <h2 style="margin:0 0 6px 0">도구/패널</h2>
+      <ul>
+        <li><a href="./corp.html">기업 개요 (대시보드)</a></li>
+        <li><a href="./dividend.html">배당 추출 · 배당 API</a></li>
+        <li><a href="./dividend_kospi.html">KOSPI 배당 스캔(전체)</a></li>
+        <li><a href="./dividend_calendar.html">배당 캘린더</a></li>
+        <li><a href="./kospi-kosdaq.html">KOSPI/KOSDAQ 리스트 & 차트</a></li>
+        <li><a href="./dart.html">공시 검색 패널</a></li>
+        <li><a href="./prices.html">가격 조회 패널</a></li>
+        <li><a href="./ml.html">ML(기존) 학습/백테스트</a></li>
+        <li><a href="./ml2.html">ML2(TimesNet) 실행 패널</a></li>
+      </ul>
+    </section>
+
+    <section class="group">
+      <h2 style="margin:0 0 6px 0">관리자</h2>
+      <ul>
+        <li><a href="./admin.html">어드민: 마스터 리프레시</a></li>
+        <li><a href="./admin_tickers.html">어드민: 티커 관리</a></li>
+      </ul>
+    </section>
+
+    <section class="group">
+      <h2 style="margin:0 0 6px 0">백엔드(API) 도움말</h2>
+      <ul>
+        <li>헬스체크: <code>/healthz</code></li>
+        <li>디버그/DB 정보
+          <ul>
+            <li><code>/api/debug/db-info</code> • 연결/프로바이더 등 요약</li>
+            <li><code>/api/debug/db-counts</code> • 주요 테이블 건수</li>
+            <li><code>/api/debug/db-size</code> • DB 용량(바이트) + 테이블별 사이즈</li>
+          </ul>
+        </li>
+        <li>가격(Prices)
+          <ul>
+            <li><code>/api/prices/close?ticker=005930&market=KOR&from=YYYY-MM-DD&to=YYYY-MM-DD[&autofill=1]</code></li>
+            <li><code>/api/prices/ohlcv?ticker=NAS:AAPL&market=USA&from=YYYY-MM-DD&to=YYYY-MM-DD</code></li>
+          </ul>
+        </li>
+        <li>ML 잡
+          <ul>
+            <li>POST <code>/api/ml/jobs/train-backtest</code> • 학습+백테스트 시작</li>
+            <li>POST <code>/api/ml/jobs/train</code> • 학습만(모델 저장)</li>
+            <li>POST <code>/api/ml/jobs/backtest</code> • 저장된 모델로 백테스트</li>
+            <li><code>/api/ml/jobs/{id}/status</code> • 상태, 진행률</li>
+            <li><code>/api/ml/jobs/{id}/logs</code> • 로그 텍스트</li>
+            <li><code>/api/ml/jobs/{id}/files</code> • 산출물 목록</li>
+            <li><code>/api/ml/jobs/{id}/file?name=...</code> • 파일 다운로드</li>
+            <li>DELETE <code>/api/ml/jobs/cleanup?olderDays=N</code> • 오래된 잡/파일 정리</li>
+          </ul>
+        </li>
+        <li>공시/기업
+          <ul>
+            <li><code>/api/filings/search?q=삼성전자&from=YYYYMMDD&to=YYYYMMDD</code></li>
+            <li><code>/api/filings/detail/cached?rcpNo=...</code> • 캐시된 XML</li>
+            <li><code>/api/corps/{corpCode}/overview</code> • 프로필 + 최근 공시</li>
+          </ul>
+        </li>
+        <li>마스터/리스트
+          <ul>
+            <li><code>/api/krx/corps/local</code> • KRX 기업(로컬 마스터)</li>
+            <li><code>/api/master/overseas/us</code> • 해외(미국) 심볼 마스터</li>
+          </ul>
+        </li>
+        <li>관리자(Admin)
+          <ul>
+            <li>POST <code>/api/admin/db/clear-prices</code> • 가격 시계열 일부/전체 삭제</li>
+            <li>POST <code>/api/admin/db/reset-all</code> • 데이터 초기화(옵션)</li>
+            <li>POST <code>/api/admin/prices/fetch-range</code> • 강제 구간 백필</li>
+            <li>POST <code>/api/admin/prices/update-daily</code> • 일일 업데이트</li>
+            <li>POST <code>/api/admin/fx/update-daily</code> • 환율 일일 업데이트</li>
+            <li>GET <code>/api/admin/kis/ping</code> • KIS 연결 확인</li>
+          </ul>
+        </li>
+      </ul>
+    </section>
+  </main>
+  <script type="module" src="./src/components/shared-footer.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="ko">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>가격 조회 패널</title>
+  <link rel="icon" href="data:," />
+  <link rel="stylesheet" href="./styles.css" />
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --fg: #111827;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0b1220;
+        --card: #0f172a;
+        --fg: #e5e7eb;
+        --muted: #94a3b8;
+        --border: #233143;
+      }
+    }
+
+    :root[data-theme="dark"] {
+      --bg: #0b1220;
+      --card: #0f172a;
+      --fg: #e5e7eb;
+      --muted: #94a3b8;
+      --border: #233143;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      margin: 0
+    }
+
+    /* Override global grid on <main> from styles.css */
+    main.wrap {
+      display: block !important;
+      grid-template-columns: none !important;
+    }
+
+    .wrap {
+      width: 100vw;
+      max-width: 100vw;
+      box-sizing: border-box;
+      margin: 0 auto;
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--card)
+    }
+
+    .row {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      align-items: stretch;
+      margin: 10px 0
+    }
+
+    .row label {
+      color: var(--muted)
+    }
+
+    .row input,
+    .row select {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: transparent;
+      color: var(--fg)
+    }
+
+    .row input::placeholder {
+      color: var(--muted)
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px
+    }
+
+    .log {
+      margin-top: 16px;
+      white-space: pre-wrap;
+      background: transparent;
+      border: 1px solid var(--border);
+      padding: 12px;
+      border-radius: 6px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      color: var(--muted)
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px
+    }
+
+    th,
+    td {
+      border: 1px solid var(--border);
+      padding: 8px 10px;
+      text-align: right
+    }
+
+    th:first-child,
+    td:first-child {
+      text-align: left
+    }
+
+    caption {
+      margin-bottom: 8px;
+      text-align: left;
+      color: var(--muted)
+    }
+
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px
+    }
+
+    .btn {
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: transparent;
+      color: var(--fg);
+      cursor: pointer
+    }
+
+    .btn.primary {
+      border-color: #2563eb;
+      color: #2563eb;
+      background: transparent
+    }
+  </style>
+  <!-- TradingView Lightweight Charts (pinned) for side-by-side comparison -->
+  <script defer
+    src="https://unpkg.com/lightweight-charts@4.2.1/dist/lightweight-charts.standalone.production.js"></script>
+  <script type="module" src="./src/scripts/prices.js"></script>
+  <script type="module" src="./src/components/shared-footer.js"></script>
+</head>
+
+<body>
+  <main class="wrap">
+    <div class="toolbar">
+      <div>
+        <h1 style="margin:0">가격 조회 패널</h1>
+        <p style="margin:4px 0 0 0;color:var(--muted)">/api/prices/close 결과를 표로 표시</p>
+      </div>
+      <button id="theme-toggle" class="btn" title="테마 전환">테마</button>
+    </div>
+
+    <div class="row">
+      <label for="api-base">API Base URL</label>
+      <input id="api-base" type="text" placeholder="http://localhost:5000" />
+    </div>
+    <div class="row">
+      <label for="ticker">티커</label>
+      <div style="flex:1;display:flex;gap:8px;align-items:center">
+        <input id="ticker" type="text" placeholder="회사명/심볼/코드 입력 → 선택" />
+        <span id="market-badge"
+          style="min-width:52px;text-align:center;border:1px solid var(--border);border-radius:6px;padding:6px 8px;color:var(--muted)">-</span>
+      </div>
+      <input id="market" type="hidden" />
+    </div>
+    <div class="row">
+      <label for="to">종료일(To)</label>
+      <input id="to" type="date" />
+    </div>
+    <div class="row">
+      <label for="range">기간</label>
+      <select id="range">
+        <option value="6m">6개월</option>
+        <option value="1y" selected>1년</option>
+        <option value="2y">2년</option>
+        <option value="3y">3년</option>
+        <option value="5y">5년</option>
+        <option value="max">최대</option>
+      </select>
+    </div>
+    <div class="row">
+      <label for="autofill">옵션</label>
+      <div style="display:flex;gap:12px;align-items:center">
+        <label style="display:flex;align-items:center;gap:6px">
+          <input id="autofill" type="checkbox" /> 자동 백필(없으면 채우고 재시도)
+        </label>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button id="btn-fetch" class="btn primary">조회</button>
+      <button id="btn-redraw" class="btn" title="데이터 재요청 없이 차트만 다시 그립니다">재그리기</button>
+      <button id="btn-demo-nflx" class="btn">예시(NAS:NFLX)</button>
+      <button id="btn-demo-ss" class="btn">예시(005930)</button>
+    </div>
+
+    <div id="meta" class="log">대기 중…</div>
+
+    <div class="chart-row" style="display:block;width:100%">
+      <div id="chart-wrap"
+        style="width:100%;height:420px;border:1px solid var(--border);border-radius:6px;position:relative;background:transparent">
+        <canvas id="chart" style="width:100%;height:100%"></canvas>
+        <div id="chart-tooltip"
+          style="position:absolute;display:none;pointer-events:none;background:#111827;color:#e5e7eb;font-size:12px;padding:4px 6px;border-radius:4px;transform:translate(8px,-100%);">
+        </div>
+      </div>
+      <div style="display:flex;gap:12px;align-items:center;color:var(--muted);margin-top:8px">
+        <label style="display:flex;gap:6px;align-items:center"><input id="use-adj" type="checkbox" checked />
+          AdjustedClose 우선</label>
+        <span id="chart-meta" style="font-size:12px"></span>
+      </div>
+    </div>
+
+    <!-- Lightweight Charts comparison section -->
+    <div style="margin-top:24px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <h3 style="margin:0;font-size:16px">Lightweight Charts 비교</h3>
+        <small id="lc-meta" style="color:var(--muted)"></small>
+      </div>
+      <div id="lc-wrap"
+        style="width:100%;height:560px;border:1px solid var(--border);border-radius:6px;position:relative;background:transparent">
+        <div id="lc-chart" style="width:100%;height:100%"></div>
+      </div>
+    </div>
+    <!-- 차트 전용 페이지로 단순화: 표/관리자 섹션 제거 -->
+  </main>
+  <footer></footer>
+</body>
+
+</html>

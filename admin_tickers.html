@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="ko">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Admin | 티커 업데이트</title>
+  <link rel="icon" href="data:," />
+  <link rel="stylesheet" href="./styles.css" />
+  <style>
+    .wrap {
+      max-width: 1000px;
+      margin: 24px auto;
+      padding: 16px;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      background: #fff
+    }
+
+    .row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin: 8px 0
+    }
+
+    .row label {
+      min-width: 140px;
+      color: #6b7280
+    }
+
+    .row input,
+    .row textarea {
+      flex: 1;
+      padding: 8px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px
+    }
+
+    .log {
+      margin-top: 12px;
+      white-space: pre-wrap;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      padding: 12px;
+      border-radius: 6px;
+      font-family: ui-monospace, monospace
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px
+    }
+
+    th,
+    td {
+      border: 1px solid #e5e7eb;
+      padding: 6px 8px
+    }
+
+    th {
+      background: #f3f4f6
+    }
+
+    .btn {
+      padding: 8px 10px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      background: #fff;
+      cursor: pointer
+    }
+
+    .btn.primary {
+      border-color: #2563eb;
+      color: #2563eb
+    }
+  </style>
+  <script type="module" src="./src/scripts/admin_tickers.js"></script>
+  <script type="module" src="./src/components/shared-footer.js"></script>
+</head>
+
+<body>
+  <main class="wrap">
+    <h1 style="margin:0">티커 자동 업데이트(도우미)</h1>
+    <p style="margin:4px 0 12px 0;color:#6b7280">KIS API의 결과(JSON)를 가져와서 티커로 변환·업데이트합니다.</p>
+
+    <div class="row"><label>API Base</label><input id="api-base" placeholder="http://localhost:5000" /></div>
+    <div class="row"><label>x-api-key</label><input id="api-key" type="password" placeholder="관리자 키" /></div>
+
+    <h2 style="margin:12px 0 6px 0">KIS GET 프록시</h2>
+    <div class="row"><label>path</label><input id="kis-path" placeholder="/uapi/..." /></div>
+    <div class="row"><label>tr_id</label><input id="kis-trid" placeholder="예: FHKST03030100" /></div>
+    <div class="row"><label>params</label><textarea id="kis-params" rows="4"
+        placeholder="k=v&k2=v2 형태 또는 JSON {k:v}"></textarea></div>
+    <div class="row"><button id="btn-fetch" class="btn primary">KIS 호출</button></div>
+    <div id="kis-raw" class="log">KIS 원문 대기…</div>
+
+    <h2 style="margin:12px 0 6px 0">변환 스크립트</h2>
+    <p style="margin:0 0 6px 0;color:#6b7280">입력: const data = KIS 원문 JSON; 출력:
+      [{TickerCode,Market,Name,Currency,Type,IsActive}]</p>
+    <textarea id="map-code" rows="8" style="width:100%"></textarea>
+    <div class="row"><button id="btn-map" class="btn">변환 실행</button> <button id="btn-upsert" class="btn primary">업서트
+        실행</button></div>
+    <div id="map-log" class="log">변환 결과 대기…</div>
+
+    <h2 style="margin:12px 0 6px 0">미리보기</h2>
+    <div id="tbl"></div>
+  </main>
+  <footer></footer>
+</body>
+
+</html>

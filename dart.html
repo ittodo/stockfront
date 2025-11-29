@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="ko">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>공시 검색 패널</title>
+  <link rel="icon" href="data:," />
+  <link rel="stylesheet" href="./styles.css" />
+  <style>
+    :root {
+      --border: #e5e7eb;
+      --muted: #6b7280
+    }
+
+    .wrap {
+      max-width: 1000px;
+      margin: 24px auto;
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fff
+    }
+
+    .row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin: 8px 0;
+      position: relative
+    }
+
+    .row label {
+      min-width: 120px;
+      color: var(--muted)
+    }
+
+    .row input,
+    .row select {
+      flex: 1;
+      padding: 8px;
+      border: 1px solid var(--border);
+      border-radius: 6px
+    }
+
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px
+    }
+
+    .btn {
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: #fff;
+      cursor: pointer
+    }
+
+    .btn.primary {
+      border-color: #2563eb;
+      color: #2563eb
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px
+    }
+
+    th,
+    td {
+      border: 1px solid var(--border);
+      padding: 6px 8px;
+      text-align: left
+    }
+
+    th {
+      background: #f3f4f6
+    }
+
+    .log {
+      margin-top: 12px;
+      white-space: pre-wrap;
+      background: #f9fafb;
+      border: 1px solid var(--border);
+      padding: 12px;
+      border-radius: 6px;
+      font-family: ui-monospace, monospace
+    }
+
+    details>summary {
+      cursor: pointer
+    }
+  </style>
+  <script type="module" src="./src/scripts/dart.js"></script>
+  <script type="module" src="./src/components/shared-footer.js"></script>
+</head>
+
+<body>
+  <main class="wrap">
+    <div class="toolbar">
+      <div>
+        <h1 style="margin:0">공시 검색 패널</h1>
+        <p style="margin:4px 0 0 0;color:var(--muted)">DART 공시 DB 검색, 필요 시 DART에서 가져와 캐시</p>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button id="btn-export" class="btn">CSV 내보내기</button>
+      </div>
+    </div>
+
+    <div class="row"><label>API Base</label><input id="api-base" placeholder="http://localhost:5000" /></div>
+    <div class="row">
+      <label>회사</label>
+      <input id="corp" placeholder="회사명 또는 corpCode(8자리)" autocomplete="off" />
+      <div id="corp-suggest"
+        style="position:absolute;left:120px;right:0;top:100%;z-index:10;background:#fff;border:1px solid var(--border);border-radius:6px;box-shadow:0 2px 8px rgba(0,0,0,0.06);display:none;max-height:240px;overflow:auto">
+      </div>
+    </div>
+    <div class="row">
+      <label>기간</label>
+      <input id="from" type="date" />
+      <input id="to" type="date" />
+    </div>
+    <div class="row">
+      <label>옵션</label>
+      <label style="display:flex;align-items:center;gap:6px"><input id="fetch-remote" type="checkbox" /> DART에서 가져와
+        캐시</label>
+      <input id="page" type="number" min="1" value="1" style="width:120px" />
+      <input id="page-size" type="number" min="1" max="200" value="50" style="width:120px" />
+    </div>
+    <div class="row"><button id="btn-search" class="btn primary">검색</button></div>
+
+    <div id="meta" class="log">대기 중…</div>
+    <div id="tbl"></div>
+    <div class="row" style="gap:8px;margin-top:8px">
+      <button id="btn-view-rendered" class="btn">렌더링 보기</button>
+      <button id="btn-view-source" class="btn">원문 보기</button>
+    </div>
+    <details id="detail-panel" style="margin-top:12px">
+      <summary>상세(XML/HTML 원문)</summary>
+      <pre id="xml" class="log" style="max-height:300px;overflow:auto"></pre>
+    </details>
+    <div id="doc" class="log"
+      style="margin-top:12px; padding:0; border:1px solid var(--border); border-radius:6px; overflow:hidden"></div>
+  </main>
+  <footer></footer>
+</body>
+
+</html>

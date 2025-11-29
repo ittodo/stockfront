@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="ko">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>기업 개요</title>
+  <link rel="icon" href="data:," />
+  <link rel="stylesheet" href="./src/styles/styles.css" />
+  <style>
+    .wrap {
+      max-width: 1000px;
+      margin: 24px auto;
+      padding: 16px;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      background: #fff
+    }
+
+    .row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin: 8px 0
+    }
+
+    .row input {
+      flex: 1;
+      padding: 8px;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px
+    }
+
+    @media (max-width: 900px) {
+      .grid {
+        grid-template-columns: 1fr
+      }
+    }
+
+    .card {
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 12px;
+      background: #fff
+    }
+
+    .kv {
+      display: grid;
+      grid-template-columns: 160px 1fr;
+      gap: 6px 12px
+    }
+
+    .kv .k {
+      color: #6b7280
+    }
+
+    .kv .v {
+      color: #111827
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px
+    }
+
+    th,
+    td {
+      border: 1px solid #e5e7eb;
+      padding: 6px 8px;
+      text-align: left
+    }
+
+    th {
+      background: #f3f4f6
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin: 8px 0
+    }
+  </style>
+  <script type="module" src="./src/scripts/corp.js"></script>
+  <script type="module" src="./src/components/shared-footer.js"></script>
+</head>
+
+<body>
+  <main class="wrap">
+    <h1 style="margin:0 0 8px 0">기업 개요</h1>
+    <div class="row">
+      <input id="corp-input" placeholder="corpCode(8자리) 또는 회사명" />
+      <button id="btn-load" class="btn primary">불러오기</button>
+      <a id="link-dart" class="btn" href="#">공시 검색</a>
+    </div>
+
+    <div id="profile" class="card"></div>
+
+    <h2 style="margin:16px 0 6px 0">최근 공시</h2>
+    <div id="filings"></div>
+  </main>
+  <footer></footer>
+</body>
+
+</html>

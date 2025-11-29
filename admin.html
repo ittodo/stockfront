@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="ko">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Admin | 마스터 리프레시</title>
+  <link rel="icon" href="data:," />
+  <link rel="stylesheet" href="./src/styles/styles.css" />
+  <style>
+    .admin-wrap {
+      max-width: 800px;
+      margin: 24px auto;
+      padding: 16px;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      background: #fff
+    }
+
+    .row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin: 8px 0
+    }
+
+    .row label {
+      min-width: 120px;
+      color: #6b7280
+    }
+
+    .row input {
+      flex: 1;
+      padding: 8px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px
+    }
+
+    .log {
+      margin-top: 16px;
+      white-space: pre-wrap;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      padding: 12px;
+      border-radius: 6px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 12px;
+      margin-top: 12px
+    }
+
+    .card {
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 12px;
+      background: #fff
+    }
+
+    .card h3 {
+      margin: 0 0 8px 0;
+      font-size: 16px
+    }
+
+    .muted {
+      color: #6b7280
+    }
+  </style>
+  <script type="module" src="./src/scripts/admin.js"></script>
+  <script type="module" src="./src/components/shared-footer.js"></script>
+</head>
+
+<body>
+  <main class="admin-wrap">
+    <h1 style="margin:0 0 8px 0">어드민 도구</h1>
+    <p style="margin:0 0 16px 0;color:#6b7280">필요할 때만 수동으로 마스터 인덱스를 리프레시하세요.</p>
+
+    <div class="row">
+      <label for="api-base">API Base URL</label>
+      <input id="api-base" type="text" placeholder="https://api.nodostream.com" />
+    </div>
+    <div class="row">
+      <label for="api-key">x-api-key</label>
+      <input id="api-key" type="password" placeholder="관리자 API 키" />
+    </div>
+    <div class="row">
+      <label for="hasura-url">Hasura URL</label>
+      <input id="hasura-url" type="text" placeholder="http://localhost:9695" />
+    </div>
+
+    <div class="actions">
+      <button id="btn-refresh" class="primary">미국 마스터 리프레시</button>
+      <button id="btn-update" class="secondary">서버 업데이트(풀/재시작)</button>
+    </div>
+
+    <div class="cards">
+      <div class="card" id="db-card">
+        <h3>DB 용량</h3>
+        <div class="muted" id="db-size">–</div>
+        <div id="db-top" class="muted" style="margin-top:6px;font-size:12px"></div>
+        <div style="margin-top:8px">
+          <button id="btn-db-size">용량 갱신</button>
+        </div>
+      </div>
+      <div class="card" id="memory-card">
+        <h3>서버 메모리</h3>
+        <div class="muted" id="memory-usage">–</div>
+        <div id="memory-details" class="muted" style="margin-top:6px;font-size:12px"></div>
+        <div style="margin-top:8px">
+          <button id="btn-memory">메모리 갱신</button>
+        </div>
+      </div>
+      <div class="card" id="hasura-card">
+        <h3>Hasura 콘솔</h3>
+        <div class="muted" style="font-size:12px">버튼을 누르면 새 탭에서 콘솔이 열립니다.</div>
+        <div style="margin-top:8px">
+          <button id="btn-open-hasura">콘솔 열기</button>
+        </div>
+        <div class="muted" style="margin-top:8px;font-size:12px">접속 시 `HASURA_ADMIN_SECRET` 값을 사용하세요.</div>
+      </div>
+    </div>
+
+    <div id="log" class="log" aria-live="polite">대기 중…</div>
+  </main>
+  <footer></footer>
+</body>
+
+</html>

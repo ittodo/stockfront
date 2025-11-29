@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="ko">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>설명 · 거래내역서 PDF → CSV</title>
+  <link rel="stylesheet" href="./src/styles/styles.css" />
+  <style>
+    main {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    h1 {
+      margin: 16px 0 8px;
+    }
+
+    h2 {
+      margin: 20px 0 8px;
+    }
+
+    .note {
+      color: #6b7280;
+      font-size: 13px;
+    }
+
+    code {
+      background: #f3f4f6;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    li {
+      margin: 4px 0;
+    }
+  </style>
+  <link rel="icon" href="data:," />
+  <meta name="robots" content="noindex" />
+  <meta name="description" content="브라우저 전용 거래내역서 PDF 파싱 도구 설명 페이지" />
+  <meta name="color-scheme" content="light dark" />
+  <meta name="referrer" content="no-referrer" />
+</head>
+
+<body>
+  <header>
+    <h1>거래내역서 PDF → CSV · 사용 설명서</h1>
+    <p class="tagline">브라우저에서 100% 로컬로 동작 · 데이터 업로드 없음</p>
+    <p class="note">본 도구는 <b>토스증권 거래내역서</b>(PDF/CSV) 포맷을 <u>기준</u>으로 작성되었습니다. 타 증권사 문서는 일부 규칙 조정이 필요할 수 있습니다.</p>
+  </header>
+  <main>
+    <section>
+      <h2>요약</h2>
+      <ul>
+        <li>여러 개의 PDF/CSV를 한 번에 드롭하여 통합 파싱합니다.</li>
+        <li>국내/미국 섹션(“원화 거래내역/달러 거래내역”)을 자동 인식해 파싱 규칙을 분리 적용합니다.</li>
+        <li>중복 제거는 <code>source_file</code> 기준으로 파일 간 동일 거래만 제거합니다(동일 파일 내부는 유지).</li>
+        <li>달력에서 임의의 날짜를 선택하면, 그 시점의 보유 주식과 원화/달러 잔액(보고)을 보여줍니다.</li>
+        <li>요약에서 종목을 클릭하면 “데이터 잔고 vs 계산 잔고”를 함께 비교 표로 확인할 수 있습니다.</li>
+        <li>CSV 내보내기: 파싱 결과, 원본(중복 제거 전), 원문 텍스트, 일자 합계, 보유 현황(선택일), 일자별 스냅샷, 현금 대사.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>빠른 시작</h2>
+      <ol>
+        <li>상단에서 PDF 또는 CSV 여러 개를 선택하거나 드래그·드롭합니다.</li>
+        <li><b>파싱 시작</b>을 누르면 미리보기와 요약, 달력이 채워집니다.</li>
+        <li><b>CSV 다운로드</b>로 표준 CSV를 저장할 수 있습니다. 필요시 <code>source_file</code> 열 포함을 켜세요.</li>
+      </ol>
+      <p class="note">개발 모드: <code>npm run dev</code> → <code>http://localhost:5173</code></p>
+    </section>
+
+    <section>
+      <h2>파싱 규칙</h2>
+      <ul>
+        <li>행 구분: 같은 줄에 날짜(YYYY.MM.DD)가 여러 개 있으면 각 날짜를 기준으로 분할합니다.</li>
+        <li>필드 분리: 공백 분리 후 오른쪽에서 연속된 숫자 꼬리를 추출(부호/소수 허용, 숫자 외 문자는 제거)합니다.</li>
+        <li>머리글/푸터/페이지 카운터는 건너뛰고, 표 머리/단위 안내는 <code>meta_header</code>/<code>meta_units</code>로 보존합니다.</li>
+        <li>미국(달러) 섹션에서는 인라인 괄호 USD <code>($ …)</code>를 제거하고, 숫자 부족 시 USD 토큰 포함 폴백을 허용합니다.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>컬럼 정의</h2>
+      <p>기본 열(순서 고정):</p>
+      <p><code>거래일자, 거래구분, 종목명(종목코드), 환율, 거래수량, 거래대금, 단가, 수수료, 거래세, 제세금, 변제/연체합, 잔고, 잔액</code></p>
+      <p>부가 열: <code>meta_header, meta_units, meta_mode</code> · 옵션 열: <code>source_file</code></p>
+    </section>
+
+    <section>
+      <h2>중복 제거 정책</h2>
+      <ul>
+        <li>모든 거래 필드가 동일한 경우만 중복으로 간주합니다.</li>
+        <li><code>source_file</code>이 서로 다른 행 간에만 제거합니다. 동일 파일 내부는 유지합니다.</li>
+        <li>제거된 행은 “중복 제거 내역” 패널에서 보존/제거를 나란히 비교할 수 있습니다.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>요약 & 캘린더</h2>
+      <ul>
+        <li>요약은 종목을 <code>이름(코드)</code>로 정규화해 매수/매도/배당주입고 수량과 보유 수량을 집계합니다.</li>
+        <li>“보유 0 숨기기” 토글로 0 보유 종목을 숨길 수 있습니다. 기본은 표시입니다.</li>
+        <li>정렬: 보유 ≠ 0 먼저, 국내(KR) → 해외(US), 이름순.</li>
+        <li>달력 날짜 클릭 시, 해당일까지의 누적 보유 수량과 원화/달러 잔액(보고)을 표시합니다.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>CSV 내보내기</h2>
+      <ul>
+        <li>표준 CSV: 파싱 결과(중복 제거 후)</li>
+        <li>원본 CSV: 중복 제거 전</li>
+        <li>원문 텍스트: pdf.js 추출 텍스트 묶음</li>
+        <li>일자 합계(daily totals): 유입/유출/수수료/순액/말잔액</li>
+        <li>보유현황(선택일): <code>CASH_KRW</code>, <code>CASH_USD</code>, 각 종목 수량</li>
+        <li>일자별 스냅샷: 날짜별 <code>CASH_KRW</code>, <code>CASH_USD</code>, 각 종목 수량</li>
+        <li>현금 대사: 계산 현금과 보고 말잔액 비교(차이 포함)</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>자주 묻는 질문</h2>
+      <ul>
+        <li><b>요약이 비어요</b>: 거래구분이 “매수/매도/배당주입고(주식배당/입고)”가 아닌 특수 표기일 수 있습니다. 미분류 표의 거래구분을 알려주시면 분류기에 추가하겠습니다.</li>
+        <li><b>종목명이 이상해요</b>: 숫자 꼬리 추출을 강화했고, 코드 없는 표기는 자동으로 <code>이름(코드)</code>에 합쳐 집계합니다.</li>
+        <li><b>현금 잔액이 다르게 보여요</b>: 달력 KPI는 “보고 잔액(문서의 잔액)”을 보여줍니다. 계산 잔액과의 차이는 “현금 대사 CSV”로 점검하세요.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>주의</h2>
+      <ul>
+        <li>민감한 PDF는 저장/업로드하지 마세요. 이 앱은 데이터를 외부로 전송하지 않지만, 파일 보관은 사용자가 책임집니다.</li>
+        <li>스캔 PDF/OCR 품질에 따라 파싱이 어려울 수 있습니다.</li>
+        <li>미국 거래의 세부 수수료(Commission/SEC/TAF 등) 집계 정책은 별도 문서화 예정입니다.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>버전 정보</h2>
+      <p class="note">이 페이지는 정적 안내입니다. 기능 상세는 저장소의 README를 참고하세요.</p>
+    </section>
+  </main>
+  <footer></footer>
+  <script type="module" src="./src/components/shared-footer.js"></script>
+</body>
+
+</html>

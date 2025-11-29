@@ -1,0 +1,560 @@
+<!doctype html>
+<html lang="ko">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>KOSPI Dividend Calendar</title>
+  <link rel="icon" href="data:;base64,">
+  <link rel="stylesheet" href="./src/styles/styles.css">
+  <style>
+    .calendar-shell {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    .calendar-shell h1 {
+      margin-bottom: 4px;
+    }
+
+    .calendar-shell .muted {
+      margin-bottom: 16px;
+    }
+
+    .calendar-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: flex-end;
+      margin-bottom: 16px;
+    }
+
+    .calendar-toolbar label {
+      font-size: 12px;
+      color: #4b5563;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .calendar-toolbar input,
+    .calendar-toolbar select {
+      padding: 6px 8px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      min-width: 120px;
+    }
+
+    .calendar-toolbar button {
+      padding: 8px 12px;
+      border: 1px solid #9ca3af;
+      border-radius: 999px;
+      background: #fff;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .calendar-toolbar button.primary {
+      background: #0f172a;
+      color: #fff;
+      border-color: #0f172a;
+    }
+
+    .calendar-layout {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      gap: 16px;
+    }
+
+    .calendar-panel {
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 16px;
+      background: #fff;
+      box-shadow: 0 5px 25px rgba(15, 23, 42, 0.05);
+    }
+
+    .calendar-panel h2 {
+      margin-top: 0;
+      font-size: 16px;
+      margin-bottom: 12px;
+    }
+
+    .calendar-filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .calendar-filter-group label {
+      font-size: 13px;
+      color: #374151;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .calendar-filter-group input,
+    .calendar-filter-group select {
+      padding: 8px 10px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+
+    .calendar-filter-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 4px;
+    }
+
+    .calendar-filter-actions button {
+      flex: 1;
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid #d1d5db;
+      background: #f9fafb;
+      cursor: pointer;
+    }
+
+    .calendar-stats {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .calendar-stat {
+      flex: 1;
+      min-width: 120px;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      padding: 12px;
+      background: #f8fafc;
+    }
+
+    .calendar-stat dt {
+      font-size: 12px;
+      color: #6b7280;
+      margin-bottom: 4px;
+    }
+
+    .calendar-stat dd {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 600;
+      color: #0f172a;
+    }
+
+    .calendar-main {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .calendar-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .calendar-nav-controls {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .calendar-nav button {
+      padding: 6px 10px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      background: #fff;
+      cursor: pointer;
+    }
+
+    .calendar-nav .month-label {
+      font-size: 18px;
+      font-weight: 600;
+      color: #0f172a;
+    }
+
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      border: 1px solid #e5e7eb;
+      border-radius: 16px;
+      overflow: hidden;
+      background: #fff;
+    }
+
+    .calendar-weekday {
+      text-align: center;
+      font-size: 12px;
+      padding: 10px 0;
+      font-weight: 600;
+      background: #f8fafc;
+      color: #475467;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .calendar-day {
+      min-height: 120px;
+      border-right: 1px solid #f1f5f9;
+      border-bottom: 1px solid #f1f5f9;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .calendar-day:nth-child(7n) {
+      border-right: none;
+    }
+
+    .calendar-day-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #0f172a;
+      font-weight: 600;
+    }
+
+    .calendar-day.other-month .calendar-day-header {
+      color: #94a3b8;
+    }
+
+    .calendar-day.today {
+      background: #ecfeff;
+    }
+
+    .event-chip {
+      border: none;
+      border-radius: 8px;
+      padding: 6px 8px;
+      font-size: 12px;
+      text-align: left;
+      cursor: pointer;
+      transition: transform .1s ease;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .event-chip:hover {
+      transform: translateY(-1px);
+    }
+
+    .event-chip.pre {
+      background: #dbeafe;
+      color: #1d4ed8;
+    }
+
+    .event-chip.post {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .event-chip .yield {
+      font-weight: 600;
+      font-size: 11px;
+    }
+
+    .event-more {
+      font-size: 11px;
+      color: #475467;
+      cursor: pointer;
+    }
+
+    .empty-month {
+      padding: 40px;
+      text-align: center;
+      color: #64748b;
+      border: 1px dashed #cbd5f5;
+      border-radius: 12px;
+      background: #f8fafc;
+    }
+
+    .calendar-detail {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      pointer-events: none;
+    }
+
+    .calendar-detail.active {
+      pointer-events: auto;
+    }
+
+    .calendar-detail-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.45);
+      opacity: 0;
+      transition: opacity .2s ease;
+    }
+
+    .calendar-detail.active .calendar-detail-backdrop {
+      opacity: 1;
+    }
+
+    .calendar-detail-panel {
+      position: relative;
+      width: 100%;
+      max-width: 520px;
+      background: #fff;
+      border-radius: 20px 20px 0 0;
+      padding: 24px;
+      transform: translateY(100%);
+      transition: transform .25s ease;
+      box-shadow: 0 -10px 30px rgba(15, 23, 42, 0.2);
+      max-height: 90vh;
+      overflow: auto;
+    }
+
+    .calendar-detail.active .calendar-detail-panel {
+      transform: translateY(0);
+    }
+
+    .calendar-detail-close {
+      position: absolute;
+      top: 12px;
+      right: 16px;
+      border: none;
+      background: transparent;
+      font-size: 24px;
+      cursor: pointer;
+      color: #0f172a;
+    }
+
+    .detail-date {
+      font-size: 14px;
+      color: #64748b;
+      margin-bottom: 4px;
+    }
+
+    .detail-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+
+    .detail-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .detail-card {
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 12px;
+      background: #f9fafb;
+    }
+
+    .detail-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .detail-card h3 {
+      margin: 0;
+      font-size: 15px;
+    }
+
+    .badge {
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      border: 1px solid transparent;
+    }
+
+    .badge.pre {
+      background: #e0f2fe;
+      color: #0369a1;
+      border-color: #bae6fd;
+    }
+
+    .badge.post {
+      background: #fef3c7;
+      color: #b45309;
+      border-color: #fde68a;
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 8px;
+      font-size: 13px;
+      color: #475467;
+    }
+
+    .detail-grid span {
+      display: block;
+    }
+
+    .detail-grid strong {
+      font-size: 12px;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .detail-actions {
+      margin-top: 12px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .detail-actions a {
+      flex: 1;
+      text-align: center;
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid #0f172a;
+      color: #0f172a;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    @media (max-width:960px) {
+      .calendar-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width:640px) {
+      .calendar-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .calendar-toolbar label {
+        width: 100%;
+      }
+
+      .calendar-nav {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .calendar-day {
+        min-height: 100px;
+      }
+
+      .calendar-detail-panel {
+        border-radius: 16px 16px 0 0;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="calendar-shell">
+    <h1>KOSPI Dividend Calendar</h1>
+    <div class="muted">KOSPI 상장사의 최근 배당 결의 일정을 달력으로 확인하고 선/후배당 상태를 빠르게 파악하세요.</div>
+
+    <div class="calendar-toolbar">
+      <label>API Base
+        <input id="calendar-api-base" placeholder="http://localhost:5001">
+      </label>
+      <label>조회 범위 (연)
+        <select id="calendar-window">
+          <option value="1">최근 1년</option>
+          <option value="2" selected>최근 2년</option>
+          <option value="3">최근 3년</option>
+        </select>
+      </label>
+      <button id="calendar-reload" class="primary">데이터 새로고침</button>
+      <button id="calendar-go-home" onclick="location.href='./index.html'">홈으로</button>
+    </div>
+
+    <div id="calendar-status" class="muted">데이터 로딩 전입니다.</div>
+
+    <div class="calendar-layout">
+      <aside class="calendar-panel">
+        <h2>Filters / 필터</h2>
+        <div class="calendar-filter-group">
+          <label>종목명 또는 코드
+            <input id="calendar-search" type="search" placeholder="예: 삼성전자 또는 005930">
+          </label>
+          <label>배당 구분
+            <select id="calendar-precedence">
+              <option value="all">전체</option>
+              <option value="pre">선배당</option>
+              <option value="post">후배당</option>
+            </select>
+          </label>
+          <label>최소 배당수익률 (%)
+            <input id="calendar-min-yield" type="number" min="0" max="100" step="0.1" value="0">
+          </label>
+          <div class="calendar-filter-actions">
+            <button id="calendar-clear">필터 초기화</button>
+            <button id="calendar-export">월별 CSV</button>
+          </div>
+        </div>
+
+        <div style="margin-top:20px">
+          <h2>월간 요약</h2>
+          <dl class="calendar-stats">
+            <div class="calendar-stat">
+              <dt>이 달 이벤트</dt>
+              <dd id="stat-events">-</dd>
+            </div>
+            <div class="calendar-stat">
+              <dt>선배당</dt>
+              <dd id="stat-pre">-</dd>
+            </div>
+            <div class="calendar-stat">
+              <dt>후배당</dt>
+              <dd id="stat-post">-</dd>
+            </div>
+            <div class="calendar-stat">
+              <dt>평균 수익률</dt>
+              <dd id="stat-yield">-</dd>
+            </div>
+          </dl>
+        </div>
+      </aside>
+
+      <section class="calendar-main">
+        <div class="calendar-nav">
+          <div class="calendar-nav-controls">
+            <button id="btn-prev-month" title="이전 달">&larr;</button>
+            <div class="month-label" id="month-label">-</div>
+            <button id="btn-next-month" title="다음 달">&rarr;</button>
+            <button id="btn-today">이번 달</button>
+          </div>
+          <div class="muted" id="calendar-meta"></div>
+        </div>
+
+        <div id="calendar-grid" class="calendar-grid" aria-live="polite"></div>
+        <div id="calendar-empty" class="empty-month" style="display:none">해당 월에 표시할 배당 이벤트가 없습니다. 범위를 넓히거나 필터를 조정해 보세요.
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <div id="calendar-detail" class="calendar-detail" aria-hidden="true">
+    <div class="calendar-detail-backdrop"></div>
+    <div class="calendar-detail-panel">
+      <button class="calendar-detail-close" aria-label="닫기">&times;</button>
+      <div class="detail-date" id="detail-date"></div>
+      <div class="detail-title" id="detail-title"></div>
+      <div class="detail-list" id="detail-list"></div>
+    </div>
+  </div>
+
+  <script type="module" src="./src/components/shared-footer.js"></script>
+  <script type="module" src="./src/scripts/dividend-calendar.js"></script>
+</body>
+
+</html>
